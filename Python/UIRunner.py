@@ -1,3 +1,9 @@
+'''
+THIS IS THE MAIN SCRIPT TO RUN THE USER INTERFACE
+
+MADE BY MUTAHHAR AHMAD
+'''
+
 import face_recognition
 import sys
 import cv2
@@ -12,10 +18,12 @@ from API import API
 from API.ttypes import *
 
 class MainWindow(QtWidgets.QMainWindow):
+    # EXIT THE PROGRAM
     def exit_(self):
         sys.exit()
         cv2.destroyAllWindows()
-        
+    
+    # FOR DISPLAYING THE NEXT FRAME ON THE UI AFTER PROCESSING
     def nextFrameSlot(self):
         process_this_frame = True
         ret, frame = self.vc.read()
@@ -52,6 +60,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pixmap = QtGui.QPixmap.fromImage(image)
         self.ui.label.setPixmap(pixmap)
         
+    # OPENING THE VIDEO STREAM VIDEO
     def FRWindow(self):
         self.window = QtWidgets.QMainWindow()
         self.ui = Face_Recognition_Window()
@@ -64,6 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer.start(1000./24)
         #self.vc.release()
         
+    # MAIN WINDOW
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self,parent)
         
@@ -77,12 +87,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
 global knownFE
 global knownN
+
+# OPEN THE FACE RECOGNITION PICKLE FILE
 with open('C:/Users/SHAKH/Documents/VS Code/Smart Surveilliance/Python/UI/encodings.pickle', 'rb') as pickle_read:
     data = pickle.load(pickle_read)
 
+# ENCODINGS AND NAMES FROM PICKLE FILE
 knownFE = data['encodings']
 knownN = data['names']
 
+# RUN THE APPLICATION
 app = QtWidgets.QApplication(sys.argv)
 myApp = MainWindow()
 myApp.show()
