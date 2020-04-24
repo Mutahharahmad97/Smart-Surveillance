@@ -86,7 +86,7 @@ class Face_Recognition_Window(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label_2.setText(_translate("MainWindow", "Employee"))
         self.label_3.setText(_translate("MainWindow", "jaskld"))
-        self.label_4.setText(_translate("MainWindow", ""))
+        self.label_4.setText(_translate("MainWindow", "Employee Name"))
         self.label_5.setText(_translate("MainWindow", "jaskld"))
         self.label_6.setText(_translate("MainWindow", "jaskld"))
         self.label_7.setText(_translate("MainWindow", "jaskld"))
