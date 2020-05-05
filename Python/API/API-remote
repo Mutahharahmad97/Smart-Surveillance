@@ -27,9 +27,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
     print('  bool isOneAnEmployee(string name)')
     print('  bool shouldOneBeHere(string name, string zone)')
     print('  bool isUniformValid(string name, string uniform)')
-    print('  string getTitle(string name)')
     print('  bool isActivityIllegal(string title, string activity)')
-    print('  bool isShiftValid(string datetime)')
+    print('  bool isShiftValid(string name, string datetime)')
     print('  void reportActivity(string name, string activity)')
     print('')
     sys.exit(0)
@@ -128,12 +127,6 @@ elif cmd == 'isUniformValid':
         sys.exit(1)
     pp.pprint(client.isUniformValid(args[0], args[1],))
 
-elif cmd == 'getTitle':
-    if len(args) != 1:
-        print('getTitle requires 1 args')
-        sys.exit(1)
-    pp.pprint(client.getTitle(args[0],))
-
 elif cmd == 'isActivityIllegal':
     if len(args) != 2:
         print('isActivityIllegal requires 2 args')
@@ -141,10 +134,10 @@ elif cmd == 'isActivityIllegal':
     pp.pprint(client.isActivityIllegal(args[0], args[1],))
 
 elif cmd == 'isShiftValid':
-    if len(args) != 1:
-        print('isShiftValid requires 1 args')
+    if len(args) != 2:
+        print('isShiftValid requires 2 args')
         sys.exit(1)
-    pp.pprint(client.isShiftValid(args[0],))
+    pp.pprint(client.isShiftValid(args[0], args[1],))
 
 elif cmd == 'reportActivity':
     if len(args) != 2:

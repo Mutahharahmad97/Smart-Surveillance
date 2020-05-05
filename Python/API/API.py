@@ -45,14 +45,6 @@ class Iface(object):
         """
         pass
 
-    def getTitle(self, name):
-        """
-        Parameters:
-         - name
-
-        """
-        pass
-
     def isActivityIllegal(self, title, activity):
         """
         Parameters:
@@ -62,9 +54,10 @@ class Iface(object):
         """
         pass
 
-    def isShiftValid(self, datetime):
+    def isShiftValid(self, name, datetime):
         """
         Parameters:
+         - name
          - datetime
 
         """
@@ -187,38 +180,6 @@ class Client(Iface):
             return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "isUniformValid failed: unknown result")
 
-    def getTitle(self, name):
-        """
-        Parameters:
-         - name
-
-        """
-        self.send_getTitle(name)
-        return self.recv_getTitle()
-
-    def send_getTitle(self, name):
-        self._oprot.writeMessageBegin('getTitle', TMessageType.CALL, self._seqid)
-        args = getTitle_args()
-        args.name = name
-        args.write(self._oprot)
-        self._oprot.writeMessageEnd()
-        self._oprot.trans.flush()
-
-    def recv_getTitle(self):
-        iprot = self._iprot
-        (fname, mtype, rseqid) = iprot.readMessageBegin()
-        if mtype == TMessageType.EXCEPTION:
-            x = TApplicationException()
-            x.read(iprot)
-            iprot.readMessageEnd()
-            raise x
-        result = getTitle_result()
-        result.read(iprot)
-        iprot.readMessageEnd()
-        if result.success is not None:
-            return result.success
-        raise TApplicationException(TApplicationException.MISSING_RESULT, "getTitle failed: unknown result")
-
     def isActivityIllegal(self, title, activity):
         """
         Parameters:
@@ -253,18 +214,20 @@ class Client(Iface):
             return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "isActivityIllegal failed: unknown result")
 
-    def isShiftValid(self, datetime):
+    def isShiftValid(self, name, datetime):
         """
         Parameters:
+         - name
          - datetime
 
         """
-        self.send_isShiftValid(datetime)
+        self.send_isShiftValid(name, datetime)
         return self.recv_isShiftValid()
 
-    def send_isShiftValid(self, datetime):
+    def send_isShiftValid(self, name, datetime):
         self._oprot.writeMessageBegin('isShiftValid', TMessageType.CALL, self._seqid)
         args = isShiftValid_args()
+        args.name = name
         args.datetime = datetime
         args.write(self._oprot)
         self._oprot.writeMessageEnd()
@@ -325,7 +288,6 @@ class Processor(Iface, TProcessor):
         self._processMap["isOneAnEmployee"] = Processor.process_isOneAnEmployee
         self._processMap["shouldOneBeHere"] = Processor.process_shouldOneBeHere
         self._processMap["isUniformValid"] = Processor.process_isUniformValid
-        self._processMap["getTitle"] = Processor.process_getTitle
         self._processMap["isActivityIllegal"] = Processor.process_isActivityIllegal
         self._processMap["isShiftValid"] = Processor.process_isShiftValid
         self._processMap["reportActivity"] = Processor.process_reportActivity
@@ -414,29 +376,6 @@ class Processor(Iface, TProcessor):
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    def process_getTitle(self, seqid, iprot, oprot):
-        args = getTitle_args()
-        args.read(iprot)
-        iprot.readMessageEnd()
-        result = getTitle_result()
-        try:
-            result.success = self._handler.getTitle(args.name)
-            msg_type = TMessageType.REPLY
-        except TTransport.TTransportException:
-            raise
-        except TApplicationException as ex:
-            logging.exception('TApplication exception in handler')
-            msg_type = TMessageType.EXCEPTION
-            result = ex
-        except Exception:
-            logging.exception('Unexpected exception in handler')
-            msg_type = TMessageType.EXCEPTION
-            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
-        oprot.writeMessageBegin("getTitle", msg_type, seqid)
-        result.write(oprot)
-        oprot.writeMessageEnd()
-        oprot.trans.flush()
-
     def process_isActivityIllegal(self, seqid, iprot, oprot):
         args = isActivityIllegal_args()
         args.read(iprot)
@@ -466,7 +405,7 @@ class Processor(Iface, TProcessor):
         iprot.readMessageEnd()
         result = isShiftValid_result()
         try:
-            result.success = self._handler.isShiftValid(args.datetime)
+            result.success = self._handler.isShiftValid(args.name, args.datetime)
             msg_type = TMessageType.REPLY
         except TTransport.TTransportException:
             raise
@@ -902,129 +841,6 @@ isUniformValid_result.thrift_spec = (
 )
 
 
-class getTitle_args(object):
-    """
-    Attributes:
-     - name
-
-    """
-
-
-    def __init__(self, name=None,):
-        self.name = name
-
-    def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
-            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
-            return
-        iprot.readStructBegin()
-        while True:
-            (fname, ftype, fid) = iprot.readFieldBegin()
-            if ftype == TType.STOP:
-                break
-            if fid == 1:
-                if ftype == TType.STRING:
-                    self.name = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
-                else:
-                    iprot.skip(ftype)
-            else:
-                iprot.skip(ftype)
-            iprot.readFieldEnd()
-        iprot.readStructEnd()
-
-    def write(self, oprot):
-        if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
-            return
-        oprot.writeStructBegin('getTitle_args')
-        if self.name is not None:
-            oprot.writeFieldBegin('name', TType.STRING, 1)
-            oprot.writeString(self.name.encode('utf-8') if sys.version_info[0] == 2 else self.name)
-            oprot.writeFieldEnd()
-        oprot.writeFieldStop()
-        oprot.writeStructEnd()
-
-    def validate(self):
-        return
-
-    def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not (self == other)
-all_structs.append(getTitle_args)
-getTitle_args.thrift_spec = (
-    None,  # 0
-    (1, TType.STRING, 'name', 'UTF8', None, ),  # 1
-)
-
-
-class getTitle_result(object):
-    """
-    Attributes:
-     - success
-
-    """
-
-
-    def __init__(self, success=None,):
-        self.success = success
-
-    def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
-            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
-            return
-        iprot.readStructBegin()
-        while True:
-            (fname, ftype, fid) = iprot.readFieldBegin()
-            if ftype == TType.STOP:
-                break
-            if fid == 0:
-                if ftype == TType.STRING:
-                    self.success = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
-                else:
-                    iprot.skip(ftype)
-            else:
-                iprot.skip(ftype)
-            iprot.readFieldEnd()
-        iprot.readStructEnd()
-
-    def write(self, oprot):
-        if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
-            return
-        oprot.writeStructBegin('getTitle_result')
-        if self.success is not None:
-            oprot.writeFieldBegin('success', TType.STRING, 0)
-            oprot.writeString(self.success.encode('utf-8') if sys.version_info[0] == 2 else self.success)
-            oprot.writeFieldEnd()
-        oprot.writeFieldStop()
-        oprot.writeStructEnd()
-
-    def validate(self):
-        return
-
-    def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not (self == other)
-all_structs.append(getTitle_result)
-getTitle_result.thrift_spec = (
-    (0, TType.STRING, 'success', 'UTF8', None, ),  # 0
-)
-
-
 class isActivityIllegal_args(object):
     """
     Attributes:
@@ -1163,12 +979,14 @@ isActivityIllegal_result.thrift_spec = (
 class isShiftValid_args(object):
     """
     Attributes:
+     - name
      - datetime
 
     """
 
 
-    def __init__(self, datetime=None,):
+    def __init__(self, name=None, datetime=None,):
+        self.name = name
         self.datetime = datetime
 
     def read(self, iprot):
@@ -1181,6 +999,11 @@ class isShiftValid_args(object):
             if ftype == TType.STOP:
                 break
             if fid == 1:
+                if ftype == TType.STRING:
+                    self.name = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 2:
                 if ftype == TType.STRING:
                     self.datetime = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
                 else:
@@ -1195,8 +1018,12 @@ class isShiftValid_args(object):
             oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin('isShiftValid_args')
+        if self.name is not None:
+            oprot.writeFieldBegin('name', TType.STRING, 1)
+            oprot.writeString(self.name.encode('utf-8') if sys.version_info[0] == 2 else self.name)
+            oprot.writeFieldEnd()
         if self.datetime is not None:
-            oprot.writeFieldBegin('datetime', TType.STRING, 1)
+            oprot.writeFieldBegin('datetime', TType.STRING, 2)
             oprot.writeString(self.datetime.encode('utf-8') if sys.version_info[0] == 2 else self.datetime)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1218,7 +1045,8 @@ class isShiftValid_args(object):
 all_structs.append(isShiftValid_args)
 isShiftValid_args.thrift_spec = (
     None,  # 0
-    (1, TType.STRING, 'datetime', 'UTF8', None, ),  # 1
+    (1, TType.STRING, 'name', 'UTF8', None, ),  # 1
+    (2, TType.STRING, 'datetime', 'UTF8', None, ),  # 2
 )
 
 

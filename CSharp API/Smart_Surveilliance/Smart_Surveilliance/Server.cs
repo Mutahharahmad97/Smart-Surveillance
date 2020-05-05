@@ -68,23 +68,33 @@ namespace Smart_Surveillance
 
         public bool isUniformValid(string name, string uniform)
         {
-            //Query
-            return true;
+            SqlConnection conn = makeConnection();
+            conn.Open();
+
+            SqlCommand query = new SqlCommand("SELECT COUNT(*) FROM DUTY_ROSTRUM DR WHERE DR.EMPLOYEE_ID IN (SELECT E.EID FROM EMPLOYEE E WHERE E.FIRST_NAME='" + name + "') AND UNIFORM_ID in (SELECT U.UID FROM UNIFORM U WHERE U.TYPE='" + uniform + "')", conn);
+            int rowCount = Convert.ToInt32(query.ExecuteScalar());
+
+            if (rowCount > 0)
+                return true;
+
+            return false;
         }
 
-        public string getTitle(string name)
+        public bool isShiftValid(string name, string datetime)
         {
-            //Query
-            return "";
+            SqlConnection conn = makeConnection();
+            conn.Open();
+
+            SqlCommand query = new SqlCommand("SELECT COUNT(*) FROM DUTY_ROSTRUM DR WHERE DR.EMPLOYEE_ID IN (SELECT E.EID FROM EMPLOYEE E WHERE E.FIRST_NAME='" + name + "') AND SHIFT_ID in (SELECT S.SID FROM SHIFT S WHERE S.START_TIME < '" + datetime + "' AND S.END_TIME < '" + datetime + "')", conn);
+            int rowCount = Convert.ToInt32(query.ExecuteScalar());
+
+            if (rowCount > 0)
+                return true;
+
+            return false;
         }
 
         public bool isActivityIllegal(string title, string activity)
-        {
-            //Query
-            return true;
-        }
-
-        public bool isShiftValid(string datetime)
         {
             //Query
             return true;

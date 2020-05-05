@@ -22,9 +22,8 @@ namespace smartSurveillance
       bool isOneAnEmployee(string name);
       bool shouldOneBeHere(string name, string zone);
       bool isUniformValid(string name, string uniform);
-      string getTitle(string name);
       bool isActivityIllegal(string title, string activity);
-      bool isShiftValid(string datetime);
+      bool isShiftValid(string name, string datetime);
       void reportActivity(string name, string activity);
     }
 
@@ -42,15 +41,11 @@ namespace smartSurveillance
       bool End_isUniformValid(IAsyncResult asyncResult);
       #endif
       #if SILVERLIGHT
-      IAsyncResult Begin_getTitle(AsyncCallback callback, object state, string name);
-      string End_getTitle(IAsyncResult asyncResult);
-      #endif
-      #if SILVERLIGHT
       IAsyncResult Begin_isActivityIllegal(AsyncCallback callback, object state, string title, string activity);
       bool End_isActivityIllegal(IAsyncResult asyncResult);
       #endif
       #if SILVERLIGHT
-      IAsyncResult Begin_isShiftValid(AsyncCallback callback, object state, string datetime);
+      IAsyncResult Begin_isShiftValid(AsyncCallback callback, object state, string name, string datetime);
       bool End_isShiftValid(IAsyncResult asyncResult);
       #endif
       #if SILVERLIGHT
@@ -329,75 +324,6 @@ namespace smartSurveillance
       
       #if SILVERLIGHT
       
-      public IAsyncResult Begin_getTitle(AsyncCallback callback, object state, string name)
-      {
-        return send_getTitle(callback, state, name);
-      }
-
-      public string End_getTitle(IAsyncResult asyncResult)
-      {
-        oprot_.Transport.EndFlush(asyncResult);
-        return recv_getTitle();
-      }
-
-      #endif
-
-      public string getTitle(string name)
-      {
-        #if SILVERLIGHT
-        var asyncResult = Begin_getTitle(null, null, name);
-        return End_getTitle(asyncResult);
-
-        #else
-        send_getTitle(name);
-        return recv_getTitle();
-
-        #endif
-      }
-      #if SILVERLIGHT
-      public IAsyncResult send_getTitle(AsyncCallback callback, object state, string name)
-      {
-        oprot_.WriteMessageBegin(new TMessage("getTitle", TMessageType.Call, seqid_));
-        getTitle_args args = new getTitle_args();
-        args.Name = name;
-        args.Write(oprot_);
-        oprot_.WriteMessageEnd();
-        return oprot_.Transport.BeginFlush(callback, state);
-      }
-
-      #else
-
-      public void send_getTitle(string name)
-      {
-        oprot_.WriteMessageBegin(new TMessage("getTitle", TMessageType.Call, seqid_));
-        getTitle_args args = new getTitle_args();
-        args.Name = name;
-        args.Write(oprot_);
-        oprot_.WriteMessageEnd();
-        oprot_.Transport.Flush();
-      }
-      #endif
-
-      public string recv_getTitle()
-      {
-        TMessage msg = iprot_.ReadMessageBegin();
-        if (msg.Type == TMessageType.Exception) {
-          TApplicationException x = TApplicationException.Read(iprot_);
-          iprot_.ReadMessageEnd();
-          throw x;
-        }
-        getTitle_result result = new getTitle_result();
-        result.Read(iprot_);
-        iprot_.ReadMessageEnd();
-        if (result.__isset.success) {
-          return result.Success;
-        }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getTitle failed: unknown result");
-      }
-
-      
-      #if SILVERLIGHT
-      
       public IAsyncResult Begin_isActivityIllegal(AsyncCallback callback, object state, string title, string activity)
       {
         return send_isActivityIllegal(callback, state, title, activity);
@@ -469,9 +395,9 @@ namespace smartSurveillance
       
       #if SILVERLIGHT
       
-      public IAsyncResult Begin_isShiftValid(AsyncCallback callback, object state, string datetime)
+      public IAsyncResult Begin_isShiftValid(AsyncCallback callback, object state, string name, string datetime)
       {
-        return send_isShiftValid(callback, state, datetime);
+        return send_isShiftValid(callback, state, name, datetime);
       }
 
       public bool End_isShiftValid(IAsyncResult asyncResult)
@@ -482,23 +408,24 @@ namespace smartSurveillance
 
       #endif
 
-      public bool isShiftValid(string datetime)
+      public bool isShiftValid(string name, string datetime)
       {
         #if SILVERLIGHT
-        var asyncResult = Begin_isShiftValid(null, null, datetime);
+        var asyncResult = Begin_isShiftValid(null, null, name, datetime);
         return End_isShiftValid(asyncResult);
 
         #else
-        send_isShiftValid(datetime);
+        send_isShiftValid(name, datetime);
         return recv_isShiftValid();
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_isShiftValid(AsyncCallback callback, object state, string datetime)
+      public IAsyncResult send_isShiftValid(AsyncCallback callback, object state, string name, string datetime)
       {
         oprot_.WriteMessageBegin(new TMessage("isShiftValid", TMessageType.Call, seqid_));
         isShiftValid_args args = new isShiftValid_args();
+        args.Name = name;
         args.Datetime = datetime;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -507,10 +434,11 @@ namespace smartSurveillance
 
       #else
 
-      public void send_isShiftValid(string datetime)
+      public void send_isShiftValid(string name, string datetime)
       {
         oprot_.WriteMessageBegin(new TMessage("isShiftValid", TMessageType.Call, seqid_));
         isShiftValid_args args = new isShiftValid_args();
+        args.Name = name;
         args.Datetime = datetime;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -611,7 +539,6 @@ namespace smartSurveillance
         processMap_["isOneAnEmployee"] = isOneAnEmployee_Process;
         processMap_["shouldOneBeHere"] = shouldOneBeHere_Process;
         processMap_["isUniformValid"] = isUniformValid_Process;
-        processMap_["getTitle"] = getTitle_Process;
         processMap_["isActivityIllegal"] = isActivityIllegal_Process;
         processMap_["isShiftValid"] = isShiftValid_Process;
         processMap_["reportActivity"] = reportActivity_Process;
@@ -731,34 +658,6 @@ namespace smartSurveillance
         oprot.Transport.Flush();
       }
 
-      public void getTitle_Process(int seqid, TProtocol iprot, TProtocol oprot)
-      {
-        getTitle_args args = new getTitle_args();
-        args.Read(iprot);
-        iprot.ReadMessageEnd();
-        getTitle_result result = new getTitle_result();
-        try
-        {
-          result.Success = iface_.getTitle(args.Name);
-          oprot.WriteMessageBegin(new TMessage("getTitle", TMessageType.Reply, seqid)); 
-          result.Write(oprot);
-        }
-        catch (TTransportException)
-        {
-          throw;
-        }
-        catch (Exception ex)
-        {
-          Console.Error.WriteLine("Error occurred in processor:");
-          Console.Error.WriteLine(ex.ToString());
-          TApplicationException x = new TApplicationException        (TApplicationException.ExceptionType.InternalError," Internal error.");
-          oprot.WriteMessageBegin(new TMessage("getTitle", TMessageType.Exception, seqid));
-          x.Write(oprot);
-        }
-        oprot.WriteMessageEnd();
-        oprot.Transport.Flush();
-      }
-
       public void isActivityIllegal_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
         isActivityIllegal_args args = new isActivityIllegal_args();
@@ -795,7 +694,7 @@ namespace smartSurveillance
         isShiftValid_result result = new isShiftValid_result();
         try
         {
-          result.Success = iface_.isShiftValid(args.Datetime);
+          result.Success = iface_.isShiftValid(args.Name, args.Datetime);
           oprot.WriteMessageBegin(new TMessage("isShiftValid", TMessageType.Reply, seqid)); 
           result.Write(oprot);
         }
@@ -1572,225 +1471,6 @@ namespace smartSurveillance
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class getTitle_args : TBase
-    {
-      private string _name;
-
-      public string Name
-      {
-        get
-        {
-          return _name;
-        }
-        set
-        {
-          __isset.name = true;
-          this._name = value;
-        }
-      }
-
-
-      public Isset __isset;
-      #if !SILVERLIGHT
-      [Serializable]
-      #endif
-      public struct Isset {
-        public bool name;
-      }
-
-      public getTitle_args() {
-      }
-
-      public void Read (TProtocol iprot)
-      {
-        iprot.IncrementRecursionDepth();
-        try
-        {
-          TField field;
-          iprot.ReadStructBegin();
-          while (true)
-          {
-            field = iprot.ReadFieldBegin();
-            if (field.Type == TType.Stop) { 
-              break;
-            }
-            switch (field.ID)
-            {
-              case 1:
-                if (field.Type == TType.String) {
-                  Name = iprot.ReadString();
-                } else { 
-                  TProtocolUtil.Skip(iprot, field.Type);
-                }
-                break;
-              default: 
-                TProtocolUtil.Skip(iprot, field.Type);
-                break;
-            }
-            iprot.ReadFieldEnd();
-          }
-          iprot.ReadStructEnd();
-        }
-        finally
-        {
-          iprot.DecrementRecursionDepth();
-        }
-      }
-
-      public void Write(TProtocol oprot) {
-        oprot.IncrementRecursionDepth();
-        try
-        {
-          TStruct struc = new TStruct("getTitle_args");
-          oprot.WriteStructBegin(struc);
-          TField field = new TField();
-          if (Name != null && __isset.name) {
-            field.Name = "name";
-            field.Type = TType.String;
-            field.ID = 1;
-            oprot.WriteFieldBegin(field);
-            oprot.WriteString(Name);
-            oprot.WriteFieldEnd();
-          }
-          oprot.WriteFieldStop();
-          oprot.WriteStructEnd();
-        }
-        finally
-        {
-          oprot.DecrementRecursionDepth();
-        }
-      }
-
-      public override string ToString() {
-        StringBuilder __sb = new StringBuilder("getTitle_args(");
-        bool __first = true;
-        if (Name != null && __isset.name) {
-          if(!__first) { __sb.Append(", "); }
-          __first = false;
-          __sb.Append("Name: ");
-          __sb.Append(Name);
-        }
-        __sb.Append(")");
-        return __sb.ToString();
-      }
-
-    }
-
-
-    #if !SILVERLIGHT
-    [Serializable]
-    #endif
-    public partial class getTitle_result : TBase
-    {
-      private string _success;
-
-      public string Success
-      {
-        get
-        {
-          return _success;
-        }
-        set
-        {
-          __isset.success = true;
-          this._success = value;
-        }
-      }
-
-
-      public Isset __isset;
-      #if !SILVERLIGHT
-      [Serializable]
-      #endif
-      public struct Isset {
-        public bool success;
-      }
-
-      public getTitle_result() {
-      }
-
-      public void Read (TProtocol iprot)
-      {
-        iprot.IncrementRecursionDepth();
-        try
-        {
-          TField field;
-          iprot.ReadStructBegin();
-          while (true)
-          {
-            field = iprot.ReadFieldBegin();
-            if (field.Type == TType.Stop) { 
-              break;
-            }
-            switch (field.ID)
-            {
-              case 0:
-                if (field.Type == TType.String) {
-                  Success = iprot.ReadString();
-                } else { 
-                  TProtocolUtil.Skip(iprot, field.Type);
-                }
-                break;
-              default: 
-                TProtocolUtil.Skip(iprot, field.Type);
-                break;
-            }
-            iprot.ReadFieldEnd();
-          }
-          iprot.ReadStructEnd();
-        }
-        finally
-        {
-          iprot.DecrementRecursionDepth();
-        }
-      }
-
-      public void Write(TProtocol oprot) {
-        oprot.IncrementRecursionDepth();
-        try
-        {
-          TStruct struc = new TStruct("getTitle_result");
-          oprot.WriteStructBegin(struc);
-          TField field = new TField();
-
-          if (this.__isset.success) {
-            if (Success != null) {
-              field.Name = "Success";
-              field.Type = TType.String;
-              field.ID = 0;
-              oprot.WriteFieldBegin(field);
-              oprot.WriteString(Success);
-              oprot.WriteFieldEnd();
-            }
-          }
-          oprot.WriteFieldStop();
-          oprot.WriteStructEnd();
-        }
-        finally
-        {
-          oprot.DecrementRecursionDepth();
-        }
-      }
-
-      public override string ToString() {
-        StringBuilder __sb = new StringBuilder("getTitle_result(");
-        bool __first = true;
-        if (Success != null && __isset.success) {
-          if(!__first) { __sb.Append(", "); }
-          __first = false;
-          __sb.Append("Success: ");
-          __sb.Append(Success);
-        }
-        __sb.Append(")");
-        return __sb.ToString();
-      }
-
-    }
-
-
-    #if !SILVERLIGHT
-    [Serializable]
-    #endif
     public partial class isActivityIllegal_args : TBase
     {
       private string _title;
@@ -2046,7 +1726,21 @@ namespace smartSurveillance
     #endif
     public partial class isShiftValid_args : TBase
     {
+      private string _name;
       private string _datetime;
+
+      public string Name
+      {
+        get
+        {
+          return _name;
+        }
+        set
+        {
+          __isset.name = true;
+          this._name = value;
+        }
+      }
 
       public string Datetime
       {
@@ -2067,6 +1761,7 @@ namespace smartSurveillance
       [Serializable]
       #endif
       public struct Isset {
+        public bool name;
         public bool datetime;
       }
 
@@ -2089,6 +1784,13 @@ namespace smartSurveillance
             switch (field.ID)
             {
               case 1:
+                if (field.Type == TType.String) {
+                  Name = iprot.ReadString();
+                } else { 
+                  TProtocolUtil.Skip(iprot, field.Type);
+                }
+                break;
+              case 2:
                 if (field.Type == TType.String) {
                   Datetime = iprot.ReadString();
                 } else { 
@@ -2116,10 +1818,18 @@ namespace smartSurveillance
           TStruct struc = new TStruct("isShiftValid_args");
           oprot.WriteStructBegin(struc);
           TField field = new TField();
+          if (Name != null && __isset.name) {
+            field.Name = "name";
+            field.Type = TType.String;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            oprot.WriteString(Name);
+            oprot.WriteFieldEnd();
+          }
           if (Datetime != null && __isset.datetime) {
             field.Name = "datetime";
             field.Type = TType.String;
-            field.ID = 1;
+            field.ID = 2;
             oprot.WriteFieldBegin(field);
             oprot.WriteString(Datetime);
             oprot.WriteFieldEnd();
@@ -2136,6 +1846,12 @@ namespace smartSurveillance
       public override string ToString() {
         StringBuilder __sb = new StringBuilder("isShiftValid_args(");
         bool __first = true;
+        if (Name != null && __isset.name) {
+          if(!__first) { __sb.Append(", "); }
+          __first = false;
+          __sb.Append("Name: ");
+          __sb.Append(Name);
+        }
         if (Datetime != null && __isset.datetime) {
           if(!__first) { __sb.Append(", "); }
           __first = false;

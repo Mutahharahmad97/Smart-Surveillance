@@ -21,6 +21,7 @@ from keras.models import load_model
 import numpy as np
 import imutils
 import os
+import time
 
 class MainWindow(QtWidgets.QMainWindow):
     # EXIT THE PROGRAM
@@ -49,6 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
         face_locations = face_recognition.face_locations(rgb_small_frame)
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
         face_names = []
+        face_titles = []
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(knownFE, face_encoding)
             name = "Unknown"
@@ -56,11 +58,12 @@ class MainWindow(QtWidgets.QMainWindow):
             if True in matches:
                 first_match_index = matches.index(True)
                 name = knownN[first_match_index]
+                title = knownT[first_match_index]
 
             face_names.append(name)
-            
+            face_titles.append(title)
         
-        for (top, right, bottom, left), name in zip(face_locations, face_names):
+        for (top, right, bottom, left), name,title in zip(face_locations, face_names, face_titles):
             top *= 4
             right *= 4
             bottom *= 4
@@ -68,20 +71,36 @@ class MainWindow(QtWidgets.QMainWindow):
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
             cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
-            cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            cv2.putText(frame, name+ ": " + title, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
         
-        return frame
+        return frame,face_names,face_titles
     
     # FOR DISPLAYING THE NEXT FRAME ON THE UI AFTER PROCESSING
     def nextFrameSlot(self):
         ret, frame = self.vc.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
-        uniform_Recognition_Frame = frame
+        uniform_Recognition_Frame = frame.copy()
         
-        frame = self.Face_Recognition_(frame)
+        frame,names,titles = self.Face_Recognition_(frame)
         uniform_Recognition_Frame = self.Uniform_Recognition_(uniform_Recognition_Frame)
         
+        for name in names:
+            if not client.isOneAnEmployee(name):
+                print('Unknown Employee Detected')
+                
+            if not client.shouldOneBeHere(name, '47'):
+                print(name+ ' is at wrong zone')
+                
+            t = time.localtime()
+            current_time = time.strftime("%H:%M:%S", t)
+            
+            if not client.isShiftValid(name, str(current_time)):
+                print(name + ' shift is not valid')
+                
+            if not client.isUniformValid(name,'blue'):
+                print(name + ' uniform invalid')
+            
         frame = cv2.add(frame,uniform_Recognition_Frame)
         
         image = QtGui.QImage(frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_RGB888)
@@ -112,11 +131,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_3.clicked.connect(self.exit_)
 
 
-global knownFE
-global knownN
-global model
-global mlb
-
 # OPEN THE FACE RECOGNITION PICKLE FILE
 with open('Models/encodings.pickle', 'rb') as pickle_read:
     data = pickle.load(pickle_read)
@@ -124,11 +138,23 @@ with open('Models/encodings.pickle', 'rb') as pickle_read:
 # ENCODINGS AND NAMES FROM PICKLE FILE
 knownFE = data['encodings']
 knownN = data['names']
+knownT = data['titles']
 
 #OPEN MODELS FOR UNIFORM RECOGNITION
 model = load_model(r"Models/fashion.model")
 #OPEN MODELS FOR UNIFORM RECOGNITION
 mlb = pickle.loads(open(r"Models/mlb.pickle", "rb").read())
+
+try:
+  transport = TSocket.TSocket('localhost', 9090)
+  transport = TTransport.TBufferedTransport(transport)
+  protocol = TBinaryProtocol.TBinaryProtocol(transport)
+  client = API.Client(protocol)
+  transport.open()
+  
+except:
+    print('Couldn\'t find server at port')
+    exit()
 
 # RUN THE APPLICATION
 app = QtWidgets.QApplication(sys.argv)
