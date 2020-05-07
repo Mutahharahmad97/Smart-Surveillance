@@ -4,12 +4,12 @@ THIS IS THE MAIN SCRIPT TO RUN THE USER INTERFACE
 MADE BY MUTAHHAR AHMAD
 '''
 
-import face_recognition
+from face_recognition import face_recognition
 import sys
 import cv2
 import pickle
-from MainPage import *
-from FaceRecognition import *
+from UI.MainPage import *
+from UI.FaceRecognition import *
 from thrift import Thrift
 from thrift.transport import TSocket
 from thrift.transport import TTransport

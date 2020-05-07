@@ -145,6 +145,7 @@ class Title(models.Model):
 
 
 class TitleViolation(models.Model):
+    id = models.AutoField(primary_key=True)
     title = models.ForeignKey(Title, models.DO_NOTHING, db_column='TITLE_ID')  # Field name made lowercase.
     vioation = models.ForeignKey('Vioation', models.DO_NOTHING, db_column='VIOATION_ID')  # Field name made lowercase.
 
