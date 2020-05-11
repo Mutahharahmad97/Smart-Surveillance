@@ -4,10 +4,8 @@ THIS IS THE MAIN SCRIPT TO RUN THE USER INTERFACE
 MADE BY MUTAHHAR AHMAD
 '''
 
-from face_recognition import face_recognition
 import sys
 import cv2
-import pickle
 from UI.MainPage import *
 from UI.FaceRecognition import *
 from thrift import Thrift
@@ -16,11 +14,9 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 from API import API
 from API.ttypes import *
-from keras.preprocessing.image import img_to_array
-from keras.models import load_model
 import numpy as np
-import imutils
 import os
+import requests
 import time
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -30,49 +26,35 @@ class MainWindow(QtWidgets.QMainWindow):
         cv2.destroyAllWindows()
         
     def Uniform_Recognition_(self, frame):
-        image = cv2.resize(frame, (96, 96))
-        image = image.astype("float") / 255.0
-        image = img_to_array(image)
-        image = np.expand_dims(image, axis=0)
         
-        proba = model.predict(image)[0]
-        idxs = np.argsort(proba)[::-1][:2]
+        ret, image = cv2.imencode('.jpg', frame)
         
-        for (i, j) in enumerate(idxs):
-            label = "{}: {:.2f}%".format(mlb.classes_[j], proba[j] * 100)
-            cv2.putText(frame, label, (10, (i * 30) + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        payload = {"image": image}
+        r = requests.post(UR_Service_Url, files=payload).json()
+
+        cv2.putText(frame, r['color'], (10, r['position'][0] + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        cv2.putText(frame, r['type'], (10, r['position'][1] + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        
+        color = ((r['color'].split(':'))[0])
             
-        return frame
+        return frame,color
         
     def Face_Recognition_(self,frame):
-        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-        rgb_small_frame = small_frame[:, :, ::-1]
-        face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
         face_names = []
         face_titles = []
-        for face_encoding in face_encodings:
-            matches = face_recognition.compare_faces(knownFE, face_encoding)
-            name = "Unknown"
-            title = "Unknown"
-
-            if True in matches:
-                first_match_index = matches.index(True)
-                name = knownN[first_match_index]
-                title = knownT[first_match_index]
-
-            face_names.append(name)
-            face_titles.append(title)
         
-        for (top, right, bottom, left), name,title in zip(face_locations, face_names, face_titles):
-            top *= 4
-            right *= 4
-            bottom *= 4
-            left *= 4
+        ret, image = cv2.imencode('.jpg', frame)
+        
+        payload = {"image": image}
+        r = requests.post(FR_Service_Url, files=payload).json()
+        
+        for(name,title,top,right,bottom,left) in r['faces']:
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
             cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name+ ": " + title, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            face_names.append(name)
+            face_titles.append(title)
         
         return frame,face_names,face_titles
     
@@ -84,7 +66,7 @@ class MainWindow(QtWidgets.QMainWindow):
         uniform_Recognition_Frame = frame.copy()
         
         frame,names,titles = self.Face_Recognition_(frame)
-        uniform_Recognition_Frame = self.Uniform_Recognition_(uniform_Recognition_Frame)
+        uniform_Recognition_Frame,color = self.Uniform_Recognition_(uniform_Recognition_Frame)
         
         for name in names:
             if not client.isOneAnEmployee(name):
@@ -102,7 +84,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 print(name + ' shift is not valid')
                 continue
                 
-            if not client.isUniformValid(name,'blue'):
+            if not client.isUniformValid(name,color):
                 print(name + ' uniform invalid')
                 continue
             
@@ -136,19 +118,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_3.clicked.connect(self.exit_)
 
 
-# OPEN THE FACE RECOGNITION PICKLE FILE
-with open('Models/encodings.pickle', 'rb') as pickle_read:
-    data = pickle.load(pickle_read)
+# Face Recognition Service
+FR_Service_Url = 'http://localhost:8000/faceRecognition/'
 
-# ENCODINGS AND NAMES FROM PICKLE FILE
-knownFE = data['encodings']
-knownN = data['names']
-knownT = data['titles']
-
-#OPEN MODELS FOR UNIFORM RECOGNITION
-model = load_model(r"Models/fashion.model")
-#OPEN MODELS FOR UNIFORM RECOGNITION
-mlb = pickle.loads(open(r"Models/mlb.pickle", "rb").read())
+# Face Recognition Service
+UR_Service_Url = 'http://localhost:8000/uniformRecognition/'
 
 try:
   transport = TSocket.TSocket('localhost', 9090)
@@ -160,6 +134,7 @@ try:
 except:
     print('Couldn\'t find server at port')
     exit()
+    
 
 # RUN THE APPLICATION
 app = QtWidgets.QApplication(sys.argv)

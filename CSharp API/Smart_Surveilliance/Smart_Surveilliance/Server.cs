@@ -23,7 +23,7 @@ namespace Smart_Surveillance
                 server.Serve();
             }
 
-            catch(Exception e)
+            catch(Exception e)  
             {
                 Console.WriteLine(e.StackTrace);
             }

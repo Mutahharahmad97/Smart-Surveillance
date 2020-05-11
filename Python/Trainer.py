@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2
 import time
 import pickle
-import face_recognition_T
+from face_recognition import face_recognition
 
 class Ui_mainWindow(object):
     def Exit(self):
@@ -21,8 +21,8 @@ class Ui_mainWindow(object):
             ret, frame = cap.read()
             if ret == True:
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                boxes = face_recognition_T.face_locations(rgb_frame, model="hog")
-                encodings = face_recognition_T.face_encodings(rgb_frame, boxes)
+                boxes = face_recognition.face_locations(rgb_frame, model="hog")
+                encodings = face_recognition.face_encodings(rgb_frame, boxes)
                 
                 for encoding in encodings:
                     encodingsBox.append(encoding)
